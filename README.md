@@ -12,8 +12,8 @@ ResilientRider is an AI-enabled parametric insurance platform that protects food
 2. [Solution Overview](#solution-overview)
 3. [Core Innovation Layers](#core-innovation-layers)
 4. [Key Features](#key-features)
-5. [Persona](#persona)
-6. [Persona Scenario](#persona-scenario)
+5. [Person](#person)
+6. [Person Scenario](#person-scenario)
 7. [System Workflow](#system-workflow)
 8. [Weekly Premium Model](#weekly-premium-model)
 9. [Payment Failure, Grace Period & Risk-Based Interest](#payment-failure-grace-period--risk-based-interest)
@@ -114,9 +114,9 @@ Riders can access small community-backed micro-loans for longer disruptions, rep
 
 ---
 
-## Persona
+## Person
 
-**Target Persona: Food Delivery Partner**
+**Target Person: Food Delivery Partner**
 
 | Attribute | Details |
 |---|---|
@@ -138,7 +138,7 @@ Net daily income after expenses can drop to **₹600 – ₹900/day**, making de
 
 ---
 
-## Persona Scenario
+## Person Scenario
 
 **Worker:** Ramesh | **Platform:** Swiggy / Zomato | **City:** Hyderabad
 
@@ -527,6 +527,10 @@ Insurance companies earn through premium pool collection, predictable micro-payo
 
 ## Benefits & Impact
 
+
+
+
+
 ### For Delivery Riders
 - Income stability during unpredictable conditions
 - Higher earnings through smart redeployment
@@ -599,3 +603,5 @@ Currently under active development as part of a hackathon project.
 ## License
 
 This project is created for academic and research purposes.
+
+https://github.com/user-attachments/assets/02ec7d0e-7dbf-41d0-9778-1da261d88563
