@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import api from '../../api/axios';
+import { MOCK_STATS } from '../../data/mockRiderData';
 import './AdminStats.css';
 
 function AdminStats() {
@@ -11,7 +12,7 @@ function AdminStats() {
     api
       .get('/admin/stats')
       .then((res) => setData(res.data.data))
-      .catch(() => {})
+      .catch(() => setData(MOCK_STATS))
       .finally(() => setLoading(false));
   }, []);
 
@@ -26,7 +27,7 @@ function AdminStats() {
     },
     {
       label: 'Total Premium Collected',
-      value: `$${data.totalPremiumCollected.toLocaleString()}`,
+      value: `₹${data.totalPremiumCollected.toLocaleString()}`,
       change: `${data.activePlans} active plans`,
       trend: 'up',
       icon: '💰',
@@ -34,7 +35,7 @@ function AdminStats() {
     },
     {
       label: 'Claims Paid',
-      value: `$${data.totalClaimsPaid.toLocaleString()}`,
+      value: `₹${data.totalClaimsPaid.toLocaleString()}`,
       change: `${data.pendingClaims} pending`,
       trend: 'neutral',
       icon: '📋',
@@ -42,7 +43,7 @@ function AdminStats() {
     },
     {
       label: 'Risk Pool Balance',
-      value: `$${data.riskPoolBalance.toLocaleString()}`,
+      value: `₹${data.riskPoolBalance.toLocaleString()}`,
       change: `${data.fraudAlerts} fraud alerts`,
       trend: data.riskPoolBalance > 0 ? 'up' : 'down',
       icon: '🏦',

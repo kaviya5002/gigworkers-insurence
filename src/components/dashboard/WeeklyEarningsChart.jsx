@@ -14,7 +14,7 @@ function WeeklyEarningsChart() {
   const data = {
     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     datasets: [{
-      label: 'Earnings ($)',
+      label: 'Earnings (₹)',
       data: chartValues,
       borderColor: '#112250',
       backgroundColor: 'rgba(17, 34, 80, 0.1)',
@@ -41,14 +41,14 @@ function WeeklyEarningsChart() {
         borderColor: '#E0B88F',
         borderWidth: 1,
         displayColors: false,
-        callbacks: { label: (ctx) => `$${ctx.parsed.y}` },
+        callbacks: { label: (ctx) => `₹${ctx.parsed.y}` },
       },
     },
     scales: {
       y: {
         beginAtZero: true,
         grid: { color: 'rgba(17, 34, 80, 0.1)' },
-        ticks: { callback: (v) => '$' + v, color: '#3C5070' },
+        ticks: { callback: (v) => '₹' + v, color: '#3C5070' },
       },
       x: { grid: { display: false }, ticks: { color: '#3C5070' } },
     },
@@ -59,7 +59,7 @@ function WeeklyEarningsChart() {
       <div className="chart-header">
         <h2 className="section-title">Weekly Earnings</h2>
         <div className="chart-summary">
-          <span className="total-earnings">${total.toFixed(2)}</span>
+          <span className="total-earnings">₹{total.toFixed(2)}</span>
           {total > 0 && <span className="earnings-change up">↑ AI Tracked</span>}
         </div>
       </div>

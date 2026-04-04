@@ -20,7 +20,7 @@ const CLAIM_TYPES = ['Accident', 'Vehicle Damage', 'Medical Emergency', 'Theft',
 
 function formatBenefit(value) {
   if (typeof value === 'boolean') return value ? 'Included' : 'Not Included';
-  return `$${value.toLocaleString()}`;
+  return `₹${value.toLocaleString()}`;
 }
 
 function weeksFromDate(dateStr) {
@@ -57,8 +57,47 @@ export default function InsuranceWallet() {
   const [claimErr, setClaimErr]       = useState('');
 
   // Plan selection
-  const [showPlans, setShowPlans] = useState(false);
-  const [payMsg, setPayMsg]       = useState('');
+  const [showPlans, setShowPlans]     = useState(false);
+  const [payMsg, setPayMsg]           = useState('');
+  const [pendingPlan, setPendingPlan] = useState(null); // plan waiting for UPI payment
+  const [showUPI, setShowUPI]         = useState(false);
+  const [upiPaid, setUpiPaid]         = useState(false);
+
+  // UPI receiver details — replace with your actual UPI ID
+  const UPI_ID   = 'resilentrider@upi';
+  const UPI_NAME = 'ResilientRider Insurance';
+
+  const openUPI = (app, amount, planName) => {
+    const note    = encodeURIComponent(`Insurance: ${planName}`);
+    const upiName = encodeURIComponent(UPI_NAME);
+    const upiId   = encodeURIComponent(UPI_ID);
+    let url = '';
+    if (app === 'gpay')    url = `tez://upi/pay?pa=${upiId}&pn=${upiName}&am=${amount}&cu=INR&tn=${note}`;
+    if (app === 'phonepe') url = `phonepe://pay?pa=${upiId}&pn=${upiName}&am=${amount}&cu=INR&tn=${note}`;
+    if (app === 'paytm')   url = `paytmmp://pay?pa=${upiId}&pn=${upiName}&am=${amount}&cu=INR&tn=${note}`;
+    if (app === 'upi')     url = `upi://pay?pa=${upiId}&pn=${upiName}&am=${amount}&cu=INR&tn=${note}`;
+    window.location.href = url;
+    // After redirect back, mark as paid and activate
+    setTimeout(() => {
+      setUpiPaid(true);
+    }, 3000);
+  };
+
+  const handlePlanSelect = (p) => {
+    setPendingPlan(p);
+    setShowPlans(false);
+    setShowUPI(true);
+    setUpiPaid(false);
+  };
+
+  const handleConfirmPayment = () => {
+    if (pendingPlan) {
+      activateInsurance(pendingPlan);
+      setShowUPI(false);
+      setPendingPlan(null);
+      setUpiPaid(false);
+    }
+  };
 
   const safetyScore  = metrics?.safetyScore ?? null;
   const weeksActive  = insurance ? weeksFromDate(insurance.activatedAt) : 0;
@@ -93,7 +132,7 @@ export default function InsuranceWallet() {
     if (!claimDesc.trim()) { setClaimErr('Please describe the incident.'); return; }
     const amt = parseFloat(claimAmount);
     if (!claimAmount || isNaN(amt) || amt <= 0) { setClaimErr('Enter a valid claim amount.'); return; }
-    if (amt > insurance.coverageAmount) { setClaimErr(`Claim exceeds your coverage of $${insurance.coverageAmount.toLocaleString()}.`); return; }
+    if (amt > insurance.coverageAmount) { setClaimErr(`Claim exceeds your coverage of ₹${insurance.coverageAmount.toLocaleString()}.`); return; }
 
     const fraud = detectFraud(gps, logs);
     const status = fraud.suspicious ? 'flagged' : 'under_review';
@@ -110,7 +149,7 @@ export default function InsuranceWallet() {
   // ── Pay premium ───────────────────────────────────────────────────────────────
   const handlePayPremium = () => {
     payPremium();
-    setPayMsg(`✅ Payment of $${insurance.weeklyPremium} recorded! Total weeks paid: ${weeksPaid + 1}`);
+    setPayMsg(`✅ Payment of ₹${insurance.weeklyPremium} recorded! Total weeks paid: ${weeksPaid + 1}`);
     setTimeout(() => setPayMsg(''), 4000);
   };
 
@@ -158,13 +197,13 @@ export default function InsuranceWallet() {
         </div>
         <div className="card-body">
           <h3 className="plan-name">{plan.name}</h3>
-          <div className="coverage-amount">${plan.coverageAmount.toLocaleString()}</div>
+          <div className="coverage-amount">₹{plan.coverageAmount.toLocaleString()}</div>
           <p className="coverage-label">Total Coverage</p>
         </div>
         <div className="card-footer">
           <div className="footer-item">
             <span className="footer-label">Premium</span>
-            <span className="footer-value">${plan.weeklyPremium}/week</span>
+            <span className="footer-value">₹{plan.weeklyPremium}/week</span>
           </div>
           <div className="footer-item">
             <span className="footer-label">Weeks Paid</span>
@@ -198,11 +237,77 @@ export default function InsuranceWallet() {
                 {PLANS.map(p => (
                   <motion.button key={p.name} className="btn btn-outline btn-full" whileHover={{ scale: 1.01 }}
                     style={{ marginBottom: '0.5rem', textAlign: 'left', padding: '0.6rem 1rem' }}
-                    onClick={() => { activateInsurance(p); setShowPlans(false); }}
+                    onClick={() => handlePlanSelect(p)}
                   >
-                    <strong>{p.name}</strong> — ${p.weeklyPremium}/week · ${p.coverageAmount.toLocaleString()} coverage
+                    <strong>{p.name}</strong> — ₹{p.weeklyPremium}/week · ₹{p.coverageAmount.toLocaleString()} coverage
                   </motion.button>
                 ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* ── UPI Payment Modal ── */}
+          <AnimatePresence>
+            {showUPI && pendingPlan && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+                style={{ marginTop: '1rem', background: 'rgba(17,34,80,0.04)', borderRadius: '14px', padding: '1.25rem', border: '1px solid #D9CBC2' }}
+              >
+                <p style={{ fontWeight: 700, fontSize: '0.95rem', color: '#112250', marginBottom: '0.25rem' }}>
+                  💳 Pay ₹{pendingPlan.weeklyPremium} for {pendingPlan.name}
+                </p>
+                <p style={{ fontSize: '0.78rem', color: '#3C5070', marginBottom: '1rem' }}>
+                  Choose your UPI app to complete payment
+                </p>
+
+                {/* UPI App Buttons */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', marginBottom: '1rem' }}>
+                  {[
+                    { app: 'gpay',    label: 'Google Pay',  emoji: '🟢', color: '#4285F4' },
+                    { app: 'phonepe', label: 'PhonePe',     emoji: '🟣', color: '#5F259F' },
+                    { app: 'paytm',   label: 'Paytm',       emoji: '🔵', color: '#00BAF2' },
+                    { app: 'upi',     label: 'Other UPI',   emoji: '🟡', color: '#F59E0B' },
+                  ].map(({ app, label, emoji, color }) => (
+                    <motion.button
+                      key={app}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => openUPI(app, pendingPlan.weeklyPremium, pendingPlan.name)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.8rem', borderRadius: '10px', border: `2px solid ${color}20`, background: `${color}10`, cursor: 'pointer', fontWeight: 600, fontSize: '0.82rem', color }}
+                    >
+                      <span style={{ fontSize: '1.2rem' }}>{emoji}</span> {label}
+                    </motion.button>
+                  ))}
+                </div>
+
+                <div style={{ background: 'rgba(17,34,80,0.06)', borderRadius: '8px', padding: '0.6rem 0.8rem', fontSize: '0.75rem', color: '#3C5070', marginBottom: '1rem' }}>
+                  <strong>UPI ID:</strong> {UPI_ID}<br />
+                  <strong>Amount:</strong> ₹{pendingPlan.weeklyPremium}<br />
+                  <strong>Note:</strong> Insurance: {pendingPlan.name}
+                </div>
+
+                <p style={{ fontSize: '0.75rem', color: '#3C5070', marginBottom: '0.75rem', opacity: 0.8 }}>
+                  After completing payment in your UPI app, click “I have Paid” to activate your plan.
+                </p>
+
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <motion.button
+                    className="btn btn-primary"
+                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                    onClick={handleConfirmPayment}
+                    style={{ flex: 1 }}
+                  >
+                    ✅ I have Paid — Activate Plan
+                  </motion.button>
+                  <motion.button
+                    className="btn btn-outline"
+                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                    onClick={() => { setShowUPI(false); setPendingPlan(null); }}
+                    style={{ flex: 1 }}
+                  >
+                    Cancel
+                  </motion.button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -241,7 +346,7 @@ export default function InsuranceWallet() {
               </div>
               {payMsg && <p style={{ color: '#10B981', fontSize: '0.85rem', marginBottom: '0.5rem' }}>{payMsg}</p>}
               <motion.button className="btn btn-primary btn-full" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handlePayPremium}>
-                💳 Pay Weekly Premium (${insurance.weeklyPremium})
+                💳 Pay Weekly Premium (₹{insurance.weeklyPremium})
               </motion.button>
             </div>
           )}
@@ -273,8 +378,8 @@ export default function InsuranceWallet() {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '0.78rem', color: '#3C5070', display: 'block', marginBottom: '0.25rem' }}>Claim Amount ($)</label>
-                  <input type="number" placeholder={`Max $${insurance.coverageAmount.toLocaleString()}`} value={claimAmount}
+                  <label style={{ fontSize: '0.78rem', color: '#3C5070', display: 'block', marginBottom: '0.25rem' }}>Claim Amount (₹)</label>
+                  <input type="number" placeholder={`Max ₹${insurance.coverageAmount.toLocaleString()}`} value={claimAmount}
                     onChange={e => setClaimAmount(e.target.value)}
                     style={{ width: '100%', padding: '0.45rem 0.7rem', borderRadius: '8px', border: '1px solid #D9CBC2', fontSize: '0.875rem', boxSizing: 'border-box' }} />
                 </div>
@@ -310,7 +415,7 @@ export default function InsuranceWallet() {
                 {insurance.payments.map((p, i) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', padding: '0.3rem 0', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
                     <span>{new Date(p.date).toLocaleDateString()}</span>
-                    <span style={{ color: '#10B981', fontWeight: 600 }}>-${p.amount}</span>
+                    <span style={{ color: '#10B981', fontWeight: 600 }}>-₹{p.amount}</span>
                   </div>
                 ))}
               </div>
@@ -326,7 +431,7 @@ export default function InsuranceWallet() {
                     </div>
                     <p style={{ opacity: 0.7, marginBottom: '0.25rem' }}>{c.description}</p>
                     <div style={{ display: 'flex', justifyContent: 'space-between', opacity: 0.6 }}>
-                      <span>Amount: ${c.amount.toLocaleString()}</span>
+                      <span>Amount: ₹{c.amount.toLocaleString()}</span>
                       <span>{new Date(c.date).toLocaleDateString()}</span>
                     </div>
                     {c.fraudCheck?.suspicious && (

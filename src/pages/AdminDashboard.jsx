@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { useAuth } from '../context/AuthContext';
@@ -9,101 +10,143 @@ import ClaimsAnalytics from '../components/admin/ClaimsAnalytics';
 import FraudDetection from '../components/admin/FraudDetection';
 import RiderAnalyticsTable from '../components/admin/RiderAnalyticsTable';
 import AIRiskPanel from '../components/admin/AIRiskPanel';
+import AdminClaimsPanel from '../components/admin/AdminClaimsPanel';
 import './AdminDashboard.css';
+
+const NAV_ITEMS = [
+  { key: 'overview',  icon: '📊', label: 'Overview'   },
+  { key: 'analytics', icon: '📈', label: 'Analytics'  },
+  { key: 'riders',    icon: '🏍️', label: 'Riders'     },
+  { key: 'claims',    icon: '📋', label: 'Claims'     },
+  { key: 'fraud',     icon: '🔍', label: 'Fraud'      },
+  { key: 'risk',      icon: '🤖', label: 'AI Risk'    },
+];
+
+function fade(delay) {
+  return { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, transition: { delay } };
+}
 
 function AdminDashboard() {
   const [timeRange, setTimeRange] = useState('week');
+  const [activeNav, setActiveNav] = useState('overview');
   const { user, logout }          = useAuth();
+  const navigate                  = useNavigate();
   const adminName                 = user?.name?.split(' ')[0] || 'Admin';
 
-  useEffect(() => {
-    AOS.init({
-      duration: 800,
-      once: true,
-    });
-  }, []);
+  useEffect(() => { AOS.init({ duration: 700, once: true }); }, []);
+
+  const scrollTo = (key) => {
+    setActiveNav(key);
+    const el = document.getElementById(`section-${key}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <div className="admin-dashboard">
-      <motion.div 
-        className="dashboard-header"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="header-content">
-          <h1>Admin Dashboard 📊</h1>
-          <p>Welcome, {adminName} — Insurance Provider Control Panel</p>
-        </div>
-        <div className="header-actions">
-          <select
-            className="time-range-select"
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-          >
-            <option value="today">Today</option>
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-            <option value="year">This Year</option>
-          </select>
-          <button className="btn btn-outline" onClick={logout}>Logout</button>
-          <button className="btn btn-primary" onClick={() => window.print()}>Generate Report</button>
-        </div>
-      </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <AdminStats />
-      </motion.div>
+      {/* ── Sidebar ── */}
+      <aside className="dash-sidebar">
+        <div className="dash-sidebar__logo">
+          <span>Admin Portal</span>
+        </div>
 
-      <div className="dashboard-grid">
-        <div className="grid-left">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+        {NAV_ITEMS.map(item => (
+          <button
+            key={item.key}
+            className={`dash-nav-item ${activeNav === item.key ? 'active' : ''}`}
+            onClick={() => scrollTo(item.key)}
           >
-            <PremiumPoolChart />
+            <span className="nav-icon">{item.icon}</span>
+            {item.label}
+          </button>
+        ))}
+
+        <div className="dash-sidebar__footer">
+          <button className="dash-nav-item" onClick={() => navigate('/admin-profile')}>
+            <span className="nav-icon">👤</span> My Profile
+          </button>
+          <button className="dash-nav-item" onClick={logout}>
+            <span className="nav-icon">🚪</span> Logout
+          </button>
+        </div>
+      </aside>
+
+      {/* ── Main Content ── */}
+      <main className="dash-main">
+
+        {/* Header */}
+        <motion.div className="dashboard-header" {...fade(0)}>
+          <div className="header-content">
+            <h1>Admin Dashboard 📊</h1>
+            <p>Welcome, {adminName} — Insurance Provider Control Panel</p>
+          </div>
+          <div className="header-actions">
+            <select className="time-range-select" value={timeRange} onChange={e => setTimeRange(e.target.value)}>
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="year">This Year</option>
+            </select>
+            <button className="btn btn-outline" onClick={() => navigate('/admin-profile')}>My Profile</button>
+            <button className="btn btn-primary" onClick={() => window.print()}>Generate Report</button>
+          </div>
+        </motion.div>
+
+        {/* ── SECTION: Overview — Stats ── */}
+        <section id="section-overview">
+          <motion.div className="dash-full-row" {...fade(0.1)}>
+            <AdminStats />
           </motion.div>
+        </section>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
+        {/* ── SECTION: Analytics ── */}
+        <section id="section-analytics">
+          <motion.div className="dash-content-grid" {...fade(0.15)}>
+            <PremiumPoolChart />
             <ClaimsAnalytics />
           </motion.div>
+        </section>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
+        {/* ── SECTION: Riders ── */}
+        <section id="section-riders">
+          <motion.div className="dash-full-row" {...fade(0.2)}>
             <RiderAnalyticsTable />
           </motion.div>
-        </div>
+        </section>
 
-        <div className="grid-right">
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5 }}
-          >
+        {/* ── SECTION: Claims ── */}
+        <section id="section-claims">
+          <motion.div className="dash-full-row" {...fade(0.22)}>
+            <AdminClaimsPanel />
+          </motion.div>
+        </section>
+
+        {/* ── SECTION: Fraud + AI Risk ── */}
+        <section id="section-fraud">
+          <motion.div className="dash-content-grid" {...fade(0.25)}>
             <FraudDetection />
+            <div id="section-risk">
+              <AIRiskPanel />
+            </div>
           </motion.div>
+        </section>
 
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6 }}
+      </main>
+
+      {/* ── Mobile Bottom Nav ── */}
+      <nav className="dash-mobile-nav">
+        {NAV_ITEMS.map(item => (
+          <button
+            key={item.key}
+            className={`mobile-nav-item ${activeNav === item.key ? 'active' : ''}`}
+            onClick={() => scrollTo(item.key)}
           >
-            <AIRiskPanel />
-          </motion.div>
-        </div>
-      </div>
+            <span className="nav-icon">{item.icon}</span>
+            {item.label}
+          </button>
+        ))}
+      </nav>
+
     </div>
   );
 }

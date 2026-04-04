@@ -60,7 +60,7 @@ export default function MicroLoanAccess() {
     if (!allMet) { setError('You do not meet all eligibility conditions.'); return; }
     const amt = parseFloat(amount);
     if (!amount || isNaN(amt) || amt <= 0) { setError('Enter a valid amount.'); return; }
-    if (amt > available) { setError(`Amount exceeds available credit of $${available.toLocaleString()}.`); return; }
+    if (amt > available) { setError(`Amount exceeds available credit of ₹${available.toLocaleString()}.`); return; }
     if (!purpose.trim()) { setError('Please enter a purpose.'); return; }
 
     const newLoan = {
@@ -76,7 +76,7 @@ export default function MicroLoanAccess() {
     const updated = [newLoan, ...loans];
     setLoans(updated);
     localStorage.setItem('riderLoans', JSON.stringify(updated));
-    setSuccess(`✅ Loan of $${amt.toLocaleString()} approved! Repay by ${newLoan.repayBy}`);
+    setSuccess(`✅ Loan of ₹${amt.toLocaleString()} approved! Repay by ${newLoan.repayBy}`);
     setAmount(''); setPurpose(''); setShowForm(false);
     setTimeout(() => setSuccess(''), 5000);
   };
@@ -106,8 +106,8 @@ export default function MicroLoanAccess() {
                   icon="📉" label="Continuous Low Income (2+ days)"
                   met={cond1}
                   detail={cond1
-                    ? `Income dropped below 50% of avg ($${avgDailyEarnings}/day) for 2+ days`
-                    : `Need 2+ days of earnings below $${(avgDailyEarnings * 0.5).toFixed(0)}. Today: $${todayEarnings}`}
+                    ? `Income dropped below 50% of avg (₹${avgDailyEarnings}/day) for 2+ days`
+                    : `Need 2+ days of earnings below ₹${(avgDailyEarnings * 0.5).toFixed(0)}. Today: ₹${todayEarnings}`}
                 />
 
                 <ConditionRow
@@ -161,8 +161,8 @@ export default function MicroLoanAccess() {
 
         <div className="loan-amount">
           <p className="amount-label">Available Credit</p>
-          <h3 className="amount-value">${available.toLocaleString()}</h3>
-          <p className="amount-limit">of ${limit.toLocaleString()} limit</p>
+          <h3 className="amount-value">₹{available.toLocaleString()}</h3>
+          <p className="amount-limit">of ₹{limit.toLocaleString()} limit</p>
         </div>
 
         <div className="loan-progress">
@@ -211,7 +211,7 @@ export default function MicroLoanAccess() {
             <p style={{ fontWeight: 600, marginBottom: '1rem', color: '#112250', fontSize: '0.9rem' }}>📋 Loan Application</p>
 
             <div style={{ marginBottom: '0.75rem' }}>
-              <label style={{ fontSize: '0.78rem', color: '#3C5070', display: 'block', marginBottom: '0.25rem' }}>Amount ($) — max ${available.toLocaleString()}</label>
+              <label style={{ fontSize: '0.78rem', color: '#3C5070', display: 'block', marginBottom: '0.25rem' }}>Amount (₹) — max ₹{available.toLocaleString()}</label>
               <input type="number" placeholder={`e.g. ${Math.round(available / 2)}`} value={amount}
                 onChange={e => setAmount(e.target.value)}
                 style={{ width: '100%', padding: '0.45rem 0.7rem', borderRadius: '8px', border: '1px solid #D9CBC2', fontSize: '0.875rem', boxSizing: 'border-box' }} />

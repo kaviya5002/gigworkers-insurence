@@ -41,6 +41,76 @@ const userSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    // ── Registration Intelligence fields ──────────────────────────
+    riskScore: {
+      type: Number,
+      default: null,
+    },
+    riskLevel: {
+      type: String,
+      enum: ['LOW', 'MEDIUM', 'HIGH', null],
+      default: null,
+    },
+    recommendedPlan: {
+      type: String,
+      default: null,
+    },
+    // ── Identity Verification fields ──────────────────────────────
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    phoneVerified: {
+      type: Boolean,
+      default: false,
+    },
+    kycStatus: {
+      type: String,
+      enum: ['Pending', 'Verified', 'Rejected'],
+      default: 'Pending',
+    },
+    // ── Profile & Settings fields ──────────────────────────────────
+    address: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    profilePhoto: {
+      type: String,
+      default: '',
+    },
+    notifications: {
+      email:           { type: Boolean, default: true  },
+      sms:             { type: Boolean, default: false },
+      claimAlerts:     { type: Boolean, default: true  },
+      premiumReminder: { type: Boolean, default: true  },
+    },
+    theme: {
+      type: String,
+      enum: ['light', 'dark', 'system'],
+      default: 'light',
+    },
+    lastLogin: {
+      type: Date,
+      default: null,
+    },
+    // ── Admin system settings ──────────────────────────────────────
+    adminSettings: {
+      maintenanceMode:    { type: Boolean, default: false },
+      autoClaimApproval:  { type: Boolean, default: false },
+      fraudAlertsEnabled: { type: Boolean, default: true  },
+      newClaimNotifs:     { type: Boolean, default: true  },
+      fraudDetectionAlerts: { type: Boolean, default: true },
+      systemErrorAlerts:  { type: Boolean, default: true  },
+    },
+    // ── Advanced Policy Intelligence fields ───────────────────────
+    policyHealthScore:    { type: Number, default: null },
+    policyHealthCategory: { type: String, enum: ['Healthy', 'Stable', 'Risky', 'Critical', null], default: null },
+    lastHealthCheckDate:  { type: Date,   default: null },
+    claimRiskScore:       { type: Number, default: null },
+    claimRiskLevel:       { type: String, enum: ['LOW', 'MEDIUM', 'HIGH', null], default: null },
+    predictionTimestamp:  { type: Date,   default: null },
+    alertGenerated:       { type: Boolean, default: false },
     createdAt: {
       type: Date,
       default: Date.now,

@@ -29,7 +29,7 @@ function DynamicPricing() {
       <div className="pricing-breakdown">
         <motion.div className="pricing-row" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
           <span className="pricing-label">Base Premium</span>
-          <span className="pricing-value">${basePremium.toFixed(2)}/week</span>
+          <span className="pricing-value">₹{basePremium.toFixed(2)}/week</span>
         </motion.div>
 
         <motion.div className="pricing-row" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
@@ -41,7 +41,7 @@ function DynamicPricing() {
 
         <motion.div className="pricing-row final" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
           <span className="pricing-label">Your Premium</span>
-          <span className="pricing-value final-value">${finalPremium.toFixed(2)}/week</span>
+          <span className="pricing-value final-value">₹{finalPremium.toFixed(2)}/week</span>
         </motion.div>
       </div>
 

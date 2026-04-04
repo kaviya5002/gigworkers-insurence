@@ -1,5 +1,13 @@
-const Loan = require('../models/Loan');
+const Loan        = require('../models/Loan');
 const Transaction = require('../models/Transaction');
+const User        = require('../models/User');
+const {
+  checkLoanEligibility,
+  calculateLoanRisk,
+  makeLoanDecision,
+  sendLoanNotification,
+  writeLoanAuditLog,
+} = require('../modules/loan-intelligence/loanIntelligence');
 
 // @desc    Apply for a micro loan
 // @route   POST /api/loans/apply
@@ -7,28 +15,66 @@ const Transaction = require('../models/Transaction');
 const applyLoan = async (req, res) => {
   try {
     const { amount, purpose } = req.body;
+    const userId = req.user.id;
 
-    // Check for existing active loan
-    const existingLoan = await Loan.findOne({
-      rider: req.user.id,
-      status: { $in: ['pending', 'approved', 'disbursed', 'repaying'] },
-    });
-
-    if (existingLoan) {
-      return res.status(400).json({ success: false, message: 'You already have an active loan' });
+    // ── Step 1: Eligibility check ─────────────────────────────────────────
+    const eligibility = await checkLoanEligibility(userId);
+    if (!eligibility.eligible) {
+      console.log(`\n❌ [LoanIntelligence] Eligibility failed — ${eligibility.reason}\n`);
+      return res.status(400).json({ success: false, message: eligibility.reason });
     }
+
+    // ── Step 2: Loan risk scoring ─────────────────────────────────────────
+    const { loanRiskScore, riskLevel, breakdown } = await calculateLoanRisk(userId);
+    console.log(`\n📊 [LoanIntelligence] Risk Score: ${loanRiskScore} (${riskLevel})`);
+    console.log(`   Breakdown: ${JSON.stringify(breakdown)}\n`);
+
+    // ── Step 3: Automatic decision ────────────────────────────────────────
+    const decision = makeLoanDecision(loanRiskScore);
+    console.log(`\n⚖️  [LoanIntelligence] Decision: ${decision.decisionLabel} | Status: ${decision.applicationStatus}\n`);
 
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 30);
 
     const loan = await Loan.create({
-      rider: req.user.id,
+      rider:             userId,
       amount,
       purpose,
       dueDate,
+      status:            decision.loanStatus,
+      applicationStatus: decision.applicationStatus,
+      loanRiskScore,
+      decisionTimestamp: new Date(),
     });
 
-    res.status(201).json({ success: true, data: loan });
+    // ── Step 4: Notification ──────────────────────────────────────────────
+    const user = await User.findById(userId);
+    sendLoanNotification('submitted', { userId, userName: user?.name, amount, status: decision.applicationStatus });
+    if (decision.loanStatus === 'approved') {
+      sendLoanNotification('approved', { userId, userName: user?.name, amount, status: 'approved' });
+    } else if (decision.loanStatus === 'rejected') {
+      sendLoanNotification('rejected', { userId, userName: user?.name, amount, status: 'rejected' });
+    }
+
+    // ── Step 5: Audit log ─────────────────────────────────────────────────
+    await writeLoanAuditLog({
+      userId,
+      action:    'Loan application submitted',
+      status:    decision.applicationStatus,
+      meta:      { loanId: loan._id, amount, loanRiskScore, riskLevel },
+    });
+    await writeLoanAuditLog({
+      userId,
+      action:    'Loan decision made',
+      status:    decision.applicationStatus,
+      meta:      { loanId: loan._id, decisionLabel: decision.decisionLabel, loanRiskScore },
+    });
+
+    res.status(201).json({
+      success: true,
+      data: loan,
+      intelligence: { loanRiskScore, riskLevel, decision: decision.applicationStatus, breakdown },
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -53,11 +99,9 @@ const getAllLoans = async (req, res) => {
   try {
     const { status } = req.query;
     const query = status ? { status } : {};
-
     const loans = await Loan.find(query)
       .populate('rider', 'name email')
       .sort({ createdAt: -1 });
-
     res.status(200).json({ success: true, data: loans });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -69,14 +113,22 @@ const getAllLoans = async (req, res) => {
 // @access  Private (admin)
 const reviewLoan = async (req, res) => {
   try {
-    const { status } = req.body; // 'approved' or 'rejected'
+    const { status } = req.body;
+
+    const applicationStatus =
+      status === 'approved' ? 'Approved' :
+      status === 'rejected' ? 'Rejected' :
+      status === 'disbursed' ? 'Disbursed' : 'Under Review';
 
     const loan = await Loan.findByIdAndUpdate(
       req.params.id,
       {
         status,
-        approvedBy: req.user.id,
-        ...(status === 'approved' && { disbursedAt: new Date() }),
+        applicationStatus,
+        approvedBy:        req.user.id,
+        decisionTimestamp: new Date(),
+        ...(status === 'approved'  && { disbursedAt: new Date() }),
+        ...(status === 'disbursed' && { disbursedAt: new Date() }),
       },
       { new: true }
     );
@@ -85,16 +137,29 @@ const reviewLoan = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Loan not found' });
     }
 
-    // Record disbursement transaction if approved
-    if (status === 'approved') {
+    // Record disbursement transaction
+    if (status === 'approved' || status === 'disbursed') {
       await Transaction.create({
-        rider: loan.rider,
-        type: 'loan_disbursement',
-        amount: loan.amount,
-        description: `Micro loan disbursed`,
-        status: 'completed',
+        rider:       loan.rider,
+        type:        'loan_disbursement',
+        amount:      loan.amount,
+        description: 'Micro loan disbursed',
+        status:      'completed',
       });
     }
+
+    // Notification
+    const user = await User.findById(loan.rider);
+    const event = status === 'approved' || status === 'disbursed' ? 'disbursed' : status;
+    sendLoanNotification(event, { userId: loan.rider, userName: user?.name, amount: loan.amount, status });
+
+    // Audit log
+    await writeLoanAuditLog({
+      userId: loan.rider,
+      action: status === 'disbursed' ? 'Loan disbursed' : 'Loan decision made',
+      status: applicationStatus,
+      meta:   { loanId: loan._id, reviewedBy: req.user.id },
+    });
 
     res.status(200).json({ success: true, data: loan });
   } catch (error) {

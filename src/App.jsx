@@ -10,6 +10,9 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import EarningsCalendar from './pages/EarningsCalendar';
+import UserProfile from './pages/UserProfile';
+import AdminProfile from './pages/AdminProfile';
 import AIChatbot from './components/AIChatbot';
 import ParticleBackground from './components/ParticleBackground';
 import ScrollToTop from './components/ScrollToTop';
@@ -42,10 +45,34 @@ function App() {
                 }
               />
               <Route
+                path="earnings-calendar"
+                element={
+                  <ProtectedRoute role="rider">
+                    <EarningsCalendar />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="user-profile"
+                element={
+                  <ProtectedRoute role="rider">
+                    <UserProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="admin-dashboard"
                 element={
                   <ProtectedRoute role="admin">
                     <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="admin-profile"
+                element={
+                  <ProtectedRoute role="admin">
+                    <AdminProfile />
                   </ProtectedRoute>
                 }
               />

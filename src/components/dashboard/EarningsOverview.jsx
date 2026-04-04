@@ -39,8 +39,8 @@ function EarningsOverview() {
 
   const stats = metrics
     ? [
-        { label: "Today's Earnings", value: `$${metrics.todayEarnings.toFixed(2)}`, icon: '💰', trend: 'up' },
-        { label: 'Weekly Earnings', value: `$${metrics.weeklyEarnings.toFixed(2)}`, icon: '📊', trend: 'up' },
+        { label: "Today's Earnings", value: `₹${metrics.todayEarnings.toFixed(2)}`, icon: '💰', trend: 'up' },
+        { label: 'Weekly Earnings', value: `₹${metrics.weeklyEarnings.toFixed(2)}`, icon: '📊', trend: 'up' },
         { label: 'Total Deliveries', value: metrics.totalDeliveries.toLocaleString(), icon: '📦', trend: 'up' },
         { label: 'Safety Score', value: `${metrics.safetyScore}/100`, icon: '🛡️', trend: metrics.safetyScore >= 70 ? 'up' : 'down' },
       ]
@@ -74,7 +74,7 @@ function EarningsOverview() {
             <p style={{ fontWeight: 600, marginBottom: '1rem', color: '#112250' }}>📋 Log Today's Ride</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
               {[
-                { name: 'earnings', label: 'Earnings ($)', placeholder: 'e.g. 120' },
+                { name: 'earnings', label: 'Earnings (₹)', placeholder: 'e.g. 120' },
                 { name: 'deliveries', label: 'Deliveries', placeholder: 'e.g. 8' },
                 { name: 'hoursOnRoad', label: 'Hours on Road', placeholder: 'e.g. 6' },
                 { name: 'avgSpeed', label: 'Avg Speed (km/h)', placeholder: 'e.g. 45' },

@@ -35,6 +35,20 @@ const claimSchema = new mongoose.Schema(
       enum: ['submitted', 'under_review', 'approved', 'rejected', 'paid', 'fraud_suspected'],
       default: 'submitted',
     },
+    priority: {
+      type: String,
+      enum: ['Normal', 'High'],
+      default: 'Normal',
+    },
+    isEmergency: {
+      type: Boolean,
+      default: false,
+    },
+    adminComment: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     incidentDate: {
       type: Date,
       required: true,
@@ -46,10 +60,9 @@ const claimSchema = new mongoose.Schema(
     documents: [
       {
         name: String,
-        url: String,
+        url:  String,
       },
     ],
-    // Parametric trigger fields
     isParametric: {
       type: Boolean,
       default: false,
@@ -64,6 +77,15 @@ const claimSchema = new mongoose.Schema(
       min: 0,
       max: 100,
     },
+    riskScore: {
+      type: Number,
+      default: 0,
+    },
+    riskLevel: {
+      type: String,
+      enum: ['LOW', 'MEDIUM', 'HIGH'],
+      default: 'LOW',
+    },
     reviewedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -71,6 +93,13 @@ const claimSchema = new mongoose.Schema(
     paidAt: {
       type: Date,
     },
+    activityLog: [
+      {
+        action:      { type: String },
+        performedBy: { type: String },
+        timestamp:   { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );

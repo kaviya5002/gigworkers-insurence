@@ -46,6 +46,12 @@ const insurancePlanSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // ── Advanced Policy Intelligence fields ───────────────────────
+    originalCoverageAmount:       { type: Number, default: null },
+    coverageAdjustmentPercentage: { type: Number, default: 0 },
+    coverageStatus:               { type: String, default: 'Standard' },
+    adjustmentReason:             { type: String, default: null },
+    adjustmentTimestamp:          { type: Date,   default: null },
   },
   { timestamps: true }
 );

@@ -47,6 +47,20 @@ const loanSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
+    // ── Loan Intelligence fields ──────────────────────────────────
+    applicationStatus: {
+      type: String,
+      enum: ['Submitted', 'Under Review', 'Approved', 'Rejected', 'Disbursed'],
+      default: 'Submitted',
+    },
+    loanRiskScore: {
+      type: Number,
+      default: null,
+    },
+    decisionTimestamp: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

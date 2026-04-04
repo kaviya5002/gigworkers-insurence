@@ -8,8 +8,17 @@ const authRoutes = require('./routes/authRoutes');
 const riderRoutes = require('./routes/riderRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const insuranceRoutes = require('./routes/insuranceRoutes');
-const loanRoutes = require('./routes/loanRoutes');
-const aiRoutes = require('./routes/aiRoutes');
+const loanRoutes     = require('./routes/loanRoutes');
+const aiRoutes       = require('./routes/aiRoutes');
+const earningsRoutes = require('./routes/earningsRoutes');
+const claimsRoutes   = require('./routes/claimsRoutes');
+const registrationRoutes = require('./modules/registration-intelligence/registrationRoutes');
+const policyRoutes       = require('./modules/policy-engine/policyRoutes');
+const pricingRoutes      = require('./modules/pricing-engine/pricingRoutes');
+const claimsIntelligenceRoutes = require('./modules/claims-intelligence/claimsRoutes');
+const automationRoutes          = require('./modules/automation-engine/automationRoutes');
+const profileRoutes             = require('./modules/profile-settings/profileRoutes');
+const advancedPolicyRoutes      = require('./modules/advanced-policy-intelligence/advancedPolicyRoutes');
 
 const app = express();
 
@@ -26,8 +35,17 @@ app.use('/api/auth', authRoutes);
 app.use('/api/rider', riderRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/insurance', insuranceRoutes);
-app.use('/api/loans', loanRoutes);
-app.use('/api/ai', aiRoutes);
+app.use('/api/loans',    loanRoutes);
+app.use('/api/ai',       aiRoutes);
+app.use('/api/earnings', earningsRoutes);
+app.use('/api/claims',   claimsRoutes);
+app.use('/api/registration', registrationRoutes);
+app.use('/api/policy',       policyRoutes);
+app.use('/api/pricing',      pricingRoutes);
+app.use('/api/claims-intelligence', claimsIntelligenceRoutes);
+app.use('/api/automation',   automationRoutes);
+app.use('/api',              profileRoutes);
+app.use('/api/policy',       advancedPolicyRoutes);
 
 // ─── Health Check ─────────────────────────────────────────────
 app.get('/', (req, res) => {
