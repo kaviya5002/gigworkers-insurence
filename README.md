@@ -554,6 +554,22 @@ Insurance companies earn through premium pool collection, predictable micro-payo
 - A stable and resilient gig economy
 - Improved overall delivery service reliability
 
+### Registration Process
+- Seamless onboarding using mobile number, UPI, and delivery platform integration
+- Quick KYC verification ensures fast activation with minimal friction
+
+### Insurance Policy Management
+- Users can easily view, upgrade, or modify their insurance plans anytime
+- Transparent dashboard showing policy status, coverage, and payment history
+
+### Dynamic Premium Calculation
+- AI-driven pricing adjusts premiums based on real-time risk levels and user behavior
+- Ensures affordability while maintaining fair risk distribution across users
+
+### Claims Management
+- Fully automated claim processing with zero paperwork
+- Real-time claim tracking and instant payout notifications for transparency
+
 ---
 
 ## Development Plan
@@ -586,6 +602,12 @@ Currently under active development as part of a hackathon project.
 - System workflow design
 - AI model planning
 - Prototype preparation
+
+**Phase 2 focus:**
+- Registration process implementation
+- Insurance policy management system
+- Dynamic premium calculation engine
+- Claims management system
 
 ---
 
